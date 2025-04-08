@@ -8,7 +8,10 @@ import torchvision.transforms as transforms
 import torch.optim as optim
 import torchvision.transforms.functional as FT
 from tqdm import tqdm
+import argparse
 from torch.utils.data import DataLoader
+
+
 from model import Yolov1
 from dataset import VOCDataset
 from utils import (
@@ -31,12 +34,12 @@ LEARNING_RATE = 2e-5
 DEVICE = "cuda" if torch.cuda.is_available else "cpu"
 BATCH_SIZE = 16 # 64 in original paper but I don't have that much vram, grad accum?
 WEIGHT_DECAY = 0
-EPOCHS = 50
+EPOCHS = 100
 NUM_WORKERS = 0
 PIN_MEMORY = True
 LOAD_MODEL = True
 LOAD_MODEL_FILE = "overfit.pth.tar"
-VOC_DIR=r"D:\StudyFile\DL\Pytorch_YoLo_From_Scratch\v1\scripts\data\voc\VOC_Detection"
+VOC_DIR = r"D:\StudyFile\DL\yolo_object_detection\YOLOv1\data\voc\VOC_Detection"
 
 
 class Compose(object):
@@ -95,6 +98,12 @@ def main():
         transform=transform
     )
 
+    val_dataset = VOCDataset(
+        voc_dir=VOC_DIR,
+        mode="val",
+        transform=transform
+    )
+
     train_loader = DataLoader(
         dataset=train_dataset,
         batch_size=BATCH_SIZE,
@@ -113,12 +122,21 @@ def main():
         drop_last=True,
     )
 
+    val_loader = DataLoader(
+        dataset=val_dataset,
+        batch_size=BATCH_SIZE,
+        num_workers=NUM_WORKERS,
+        pin_memory=PIN_MEMORY,
+        shuffle=True,
+        drop_last=True,
+    )
+
     for epoch in range(EPOCHS):
         print(f"num epochs: {epoch} / {EPOCHS}")
         train_fn(train_loader, model, optimizer, loss_fn)
 
         pred_boxes, target_boxes = get_bboxes(
-            train_loader, model, iou_threshold=0.5, threshold=0.4
+            val_loader, model, iou_threshold=0.5, threshold=0.4
         )
 
         mean_avg_prec = mean_average_precision(

@@ -6,8 +6,7 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(description="下载PASCAL VOC数据集")
-    parser.add_argument("dir_path",
-                        default="./voc_dataset", 
+    parser.add_argument("dir_path", 
                         help="存储数据集的目录路径")
     args = parser.parse_args()
 
@@ -27,7 +26,7 @@ def main():
     repo_url = 'https://www.modelscope.cn/datasets/yolo_master/VOC0712.git'
 
     # 克隆仓库
-
+    print(f"[PROGRESS] 正在克隆数据集到 {args.dir_path}...")
     clone_result = subprocess.run(
         ['git', 'clone', repo_url, args.dir_path],
         capture_output=True,

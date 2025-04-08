@@ -26,7 +26,7 @@ test_dataset = VOCDataset(
     transform=transform
 )
 
-for image_num in range(4):
+for image_num in range(8):
     idx = random.randint(0, len(test_dataset))
 
 

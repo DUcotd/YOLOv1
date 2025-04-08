@@ -3,6 +3,7 @@ import os
 import sys
 import shutil
 import argparse
+from sklearn.model_selection import train_test_split
 
 def print_directory_structure():
     print("VOC_Detection/")
@@ -12,9 +13,13 @@ def print_directory_structure():
     print("`-- test/")
     print("    |-- images/   # 存放测试集图片")
     print("    `-- targets/  # 存放测试集标注")
+    print("`-- val/")
+    print("    |-- images/   # 存放测试集图片")
+    print("    `-- targets/  # 存放测试集标注")
     print("\n数据集的划分如下:")
     print("  - 训练集: VOC 2007 训练集 + VOC 2007 验证集 + VOC 2012 训练集 + VOC 2012 验证集")
     print("  - 测试集: VOC 2007 测试集")
+    print("  - 验证集: VOC 2007 验证集")
     print("\n旧的 'VOCdevkit/' 目录将被删除。")
 
 def organize_voc_dataset(dir_path):
@@ -23,7 +28,9 @@ def organize_voc_dataset(dir_path):
         ('train', 'images'),
         ('train', 'targets'),
         ('test', 'images'),
-        ('test', 'targets')
+        ('test', 'targets'),
+        ('val', 'images'),
+        ('val', 'targets')
     ]
     
     for dataset_part, xy_part in dirs_to_create:
@@ -62,7 +69,7 @@ def organize_voc_dataset(dir_path):
 
         print(f"移动 VOC{year} 训练数据: {moved_count} 张图片及标注")
 
-    # 处理测试数据 (仅2007)
+    # 处理测试数据及验证数据
     voc2007_dir = os.path.realpath(os.path.join(dir_path, 'VOCdevkit', 'VOC2007'))
     list_file = os.path.join(voc2007_dir, 'ImageSets', 'Main', 'test.txt')
     try:
@@ -71,6 +78,8 @@ def organize_voc_dataset(dir_path):
     except FileNotFoundError:
         print(f"[错误] 测试列表不存在: {list_file}")
         sys.exit(1)
+
+    file_ids, file_ids_val = train_test_split(file_ids, test_size=0.2, random_state=42)
 
     # 移动测试文件
     moved_count = 0
@@ -88,6 +97,24 @@ def organize_voc_dataset(dir_path):
             shutil.move(src_xml, dest_xml)
     
     print(f"移动 VOC2007 测试数据: {moved_count} 张图片及标注")
+
+
+    # 移动验证文件
+    moved_count = 0
+    for file_id in file_ids_val:
+        src_jpg = os.path.join(voc2007_dir, 'JPEGImages', f"{file_id}.jpg")
+        src_xml = os.path.join(voc2007_dir, 'Annotations', f"{file_id}.xml")
+        
+        dest_jpg = os.path.join(dir_path, 'VOC_Detection', 'val', 'images', f"{file_id}.jpg")
+        dest_xml = os.path.join(dir_path, 'VOC_Detection', 'val', 'targets', f"{file_id}.xml")
+
+        if os.path.exists(src_jpg):
+            shutil.move(src_jpg, dest_jpg)
+            moved_count += 1
+        if os.path.exists(src_xml):
+            shutil.move(src_xml, dest_xml)
+    
+    print(f"移动 VOC2007 验证数据: {moved_count} 张图片及标注")
 
     # 删除旧目录
     vocdevkit_path = os.path.realpath(os.path.join(dir_path, 'VOCdevkit'))

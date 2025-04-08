@@ -10,15 +10,18 @@ def parse_args():
         formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument('dataset_path', type=str, 
-                      help='PASCAL VOC 数据集根目录\n'
-                           '示例结构：\n'
-                           'VOC_Detection/\n'
-                           '├── train/\n'
-                           '│   ├── images/\n'
-                           '│   └── targets/\n'
-                           '└── test/\n'
-                           '    ├── images/\n'
-                           '    └── targets/')
+                        help='PASCAL VOC 数据集根目录\n'
+                             '示例结构：\n'
+                             'VOC_Detection/\n'
+                             '├── train/\n'
+                             '│   ├── images/\n'
+                             '│   └── targets/\n'
+                             '├── test/\n'
+                             '│   ├── images/\n'
+                             '│   └── targets/\n'
+                             '└── val/\n'
+                             '    ├── images/\n'
+                             '    └── targets/')
     return parser.parse_args()
 
 def print_summary(stats):
@@ -43,7 +46,7 @@ def simplify_targets(dataset_path: str) -> None:
         'deleted_xml': 0
     })
 
-    for dataset_part in ['train', 'test']:
+    for dataset_part in ['train', 'test', 'val']:
         print(f"\n{'='*30}\n开始处理 {dataset_part.upper()} 数据集\n{'='*30}")
         
         annot_dir = os.path.join(dataset_path, "VOC_Detection", dataset_part, "targets")
